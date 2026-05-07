@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import bookingService from "../services/bookingService";
+import { QRCodeCanvas } from "qrcode.react";
 
 const MyTicketsPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -99,6 +100,13 @@ const MyTicketsPage = () => {
             const status = statusConfig[booking.status] || statusConfig.pending;
             const canCancel =
               booking.status === "pending" || booking.status === "confirmed";
+
+            const qrValue = `Mã vé: ${booking.id}
+              Phim: ${booking.Showtime?.Movie?.title}
+              Suất: ${formatTime(booking.Showtime?.start_time)} - ${formatDate(booking.Showtime?.start_time)}
+              Phòng: ${booking.Showtime?.Room?.name}
+              Ghế: ${booking.Seats?.map((s) => `${s.row}${s.number}`).join(", ")}
+              Tổng tiền: ${formatPrice(booking.total_price)}`;
 
             return (
               <div
@@ -280,6 +288,54 @@ const MyTicketsPage = () => {
                         >
                           Huỷ vé
                         </button>
+                      )}
+                    </div>
+
+                    {/* Cột QR Code (Bên phải) */}
+                    <div
+                      style={{
+                        padding: "16px",
+                        borderLeft: "1px dashed #ddd",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "#fafafa",
+                      }}
+                    >
+                      {booking.status !== "cancelled" ? (
+                        <>
+                          <QRCodeCanvas
+                            value={qrValue}
+                            size={80}
+                            marginSize={2}
+                          />
+                          <span
+                            style={{
+                              fontSize: 10,
+                              color: "#999",
+                              marginTop: 8,
+                            }}
+                          >
+                            Quét để kiểm tra
+                          </span>
+                        </>
+                      ) : (
+                        <div
+                          style={{
+                            width: 80,
+                            height: 80,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#ccc",
+                            border: "1px solid #eee",
+                            fontSize: 10,
+                            textAlign: "center",
+                          }}
+                        >
+                          VÉ ĐÃ HUỶ
+                        </div>
                       )}
                     </div>
                   </div>

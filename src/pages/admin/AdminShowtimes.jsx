@@ -14,6 +14,9 @@ const AdminShowtimes = () => {
     start_time: "",
     price: "",
     price_vip: "",
+    is_auto: false,
+    buffer_time: 15,
+    end_day_time: "",
   });
 
   const fetchAll = async () => {
@@ -41,6 +44,9 @@ const AdminShowtimes = () => {
         start_time: "",
         price: "",
         price_vip: "",
+        is_auto: false,
+        buffer_time: 15,
+        end_day_time: "",
       });
       setShowForm(false);
       fetchAll();
@@ -216,6 +222,80 @@ const AdminShowtimes = () => {
               style={inputStyle}
             />
           </div>
+
+          <div
+            style={{
+              gridColumn: "1/-1",
+              borderTop: "1px solid #eee",
+              paddingTop: 14,
+              marginTop: 10,
+            }}
+          >
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={form.is_auto}
+                onChange={(e) =>
+                  setForm({ ...form, is_auto: e.target.checked })
+                }
+              />
+              Tự động tạo suất chiếu cho đến hết ngày
+            </label>
+          </div>
+
+          {form.is_auto && (
+            <>
+              <div>
+                <label
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    display: "block",
+                    marginBottom: 4,
+                  }}
+                >
+                  Thời gian nghỉ giữa các suất (phút)
+                </label>
+                <input
+                  type="number"
+                  value={form.buffer_time}
+                  onChange={(e) =>
+                    setForm({ ...form, buffer_time: e.target.value })
+                  }
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    display: "block",
+                    marginBottom: 4,
+                  }}
+                >
+                  Giờ kết thúc ngày *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={form.end_day_time}
+                  onChange={(e) =>
+                    setForm({ ...form, end_day_time: e.target.value })
+                  }
+                  required={form.is_auto}
+                  style={inputStyle}
+                />
+              </div>
+            </>
+          )}
           <div style={{ gridColumn: "1/-1", display: "flex", gap: 10 }}>
             <button
               type="submit"
