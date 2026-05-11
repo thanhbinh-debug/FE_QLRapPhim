@@ -6,6 +6,7 @@ import foodService from "../services/foodService";
 import bookingService from "../services/bookingService";
 import paymentService from "../services/paymentService";
 import QRModal from "../components/QRModal";
+import Swal from "sweetalert2";
 
 const STEPS = ["Chọn ghế", "Chọn đồ ăn", "Xác nhận & Thanh toán"];
 
@@ -146,13 +147,21 @@ const BookingPage = () => {
       });
 
       // 3. Xử lý sau khi thành công
-      alert("Thanh toán thành công và đã lưu vào hệ thống!");
+      await Swal.fire({
+        icon: "success",
+        title: "Thanh toán thành công",
+        text: "Vé của bạn đã được lưu vào hệ thống!",
+        confirmButtonColor: "#e74c3c",
+      });
       setShowQR(false);
       navigate("/my-tickets");
     } catch (err) {
       // Nếu lỗi 400 xảy ra, nó sẽ hiện thông báo lỗi từ Backend ở đây
-      setError(err.response?.data?.message || "Lỗi kết nối hệ thống!");
-      console.error("Chi tiết lỗi:", err.response?.data);
+      Swal.fire({
+        icon: "error",
+        title: "Thất bại",
+        text: err.response?.data?.message || "Lỗi kết nối hệ thống!",
+      });
     } finally {
       setSubmitting(false);
     }

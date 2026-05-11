@@ -7,6 +7,7 @@ import AdminShowtimes from "./AdminShowtimes";
 import AdminBookings from "./AdminBookings";
 import AdminFoods from "./AdminFoods";
 import AdminPayments from "./AdminPayments";
+import AdminDashboard from "./AdminDashboard";
 
 const TABS = [
   { key: "movies", label: "🎬 Phim" },
@@ -15,6 +16,7 @@ const TABS = [
   { key: "bookings", label: "🎟 Vé" },
   { key: "foods", label: "🍿 Đồ ăn" },
   { key: "payments", label: "💳 Hoá đơn" },
+  { key: "dashboard", label: "📊 Tổng quan" },
 ];
 
 const AdminPage = () => {
@@ -37,6 +39,8 @@ const AdminPage = () => {
         return <AdminFoods />;
       case "payments":
         return <AdminPayments />;
+      case "dashboard":
+        return <AdminDashboard />;
       default:
         return null;
     }

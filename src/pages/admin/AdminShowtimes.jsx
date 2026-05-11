@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import showtimeService from "../../services/showtimeService";
 import movieService from "../../services/movieService";
 import roomService from "../../services/roomService";
@@ -50,18 +51,45 @@ const AdminShowtimes = () => {
       });
       setShowForm(false);
       fetchAll();
+
+      Swal.fire({
+        title: "Thành công!",
+        text: "Suất chiếu mới đã được tạo thành công.",
+        icon: "success",
+        confirmButtonColor: "#e74c3c", // Màu đỏ đồng bộ với giao diện CinemaApp của bạn
+        timer: 2000, // Tự động đóng sau 2 giây
+      });
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi tạo suất chiếu");
+      Swal.fire({
+        title: "Lỗi!",
+        text:
+          err.response?.data?.message ||
+          "Không có suất chiếu nào được tạo. Vui lòng kiểm tra lại khung giờ hoặc trùng lịch!",
+        icon: "error",
+        confirmButtonColor: "#e74c3c",
+      });
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Xoá suất chiếu này?")) return;
+    const result = await Swal.fire({
+      title: "Xác nhận xoá?",
+      text: "Bạn không thể hoàn tác hành động này!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e74c3c",
+      cancelButtonColor: "#aaa",
+      confirmButtonText: "Đồng ý xoá",
+      cancelButtonText: "Huỷ",
+    });
+
+    if (result.isConfirmed) return;
     try {
       await showtimeService.delete(id);
+      Swal.fire("Đã xoá!", "Suất chiếu đã được loại bỏ.", "success");
       fetchAll();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi xoá");
+      Swal.fire("Lỗi!", err.response?.data?.message || "Lỗi xoá", "error");
     }
   };
 

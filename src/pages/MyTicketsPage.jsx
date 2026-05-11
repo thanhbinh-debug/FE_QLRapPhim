@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import bookingService from "../services/bookingService";
 import { QRCodeCanvas } from "qrcode.react";
+import Swal from "sweetalert2";
 
 const MyTicketsPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -22,14 +23,55 @@ const MyTicketsPage = () => {
     fetchBookings();
   }, []);
 
+  // const handleCancel = async (bookingId) => {
+  //   if (!window.confirm("Bạn có chắc muốn huỷ vé này không?")) return;
+  //   try {
+  //     await bookingService.cancel(bookingId);
+  //     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+  //     alert("Huỷ vé thành công");
+  //   } catch (err) {
+  //     alert(err.response?.data?.message || "Huỷ vé thất bại");
+  //   }
+  // };
+
   const handleCancel = async (bookingId) => {
-    if (!window.confirm("Bạn có chắc muốn huỷ vé này không?")) return;
-    try {
-      await bookingService.cancel(bookingId);
-      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
-      alert("Huỷ vé thành công");
-    } catch (err) {
-      alert(err.response?.data?.message || "Huỷ vé thất bại");
+    // 1. Thay thế window.confirm bằng Swal xác nhận
+    const result = await Swal.fire({
+      title: "Xác nhận huỷ vé?",
+      text: "Bạn có chắc muốn huỷ vé này không? Hành động này không thể hoàn tác.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e74c3c", // Màu đỏ giống nút Huỷ của bạn
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Đồng ý huỷ",
+      cancelButtonText: "Quay lại",
+      reverseButtons: true, // Đảo vị trí nút để nút Huỷ nằm bên phải nếu muốn
+    });
+
+    // Nếu người dùng nhấn "Đồng ý huỷ"
+    if (result.isConfirmed) {
+      try {
+        await bookingService.cancel(bookingId);
+        setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+
+        // 2. Thông báo thành công
+        Swal.fire({
+          title: "Thành công!",
+          text: "Vé của bạn đã được huỷ.",
+          icon: "success",
+          confirmButtonColor: "#e74c3c",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } catch (err) {
+        // 3. Thông báo lỗi
+        Swal.fire({
+          title: "Thất bại",
+          text: err.response?.data?.message || "Huỷ vé thất bại",
+          icon: "error",
+          confirmButtonColor: "#e74c3c",
+        });
+      }
     }
   };
 
