@@ -71,15 +71,43 @@ const BookingPage = () => {
   };
 
   // Tăng/giảm số lượng đồ ăn
+  // const updateFood = (foodId, delta) => {
+  //   setSelectedFoods((prev) => {
+  //     const qty = (prev[foodId] || 0) + delta;
+  //     if (qty <= 0) {
+  //       const next = { ...prev };
+  //       delete next[foodId];
+  //       return next;
+  //     }
+  //     return { ...prev, [foodId]: qty };
+  //   });
+  // };
+
   const updateFood = (foodId, delta) => {
+    const food = foods.find((f) => f.id === foodId); // Tìm món ăn để lấy stock
+
     setSelectedFoods((prev) => {
-      const qty = (prev[foodId] || 0) + delta;
-      if (qty <= 0) {
+      const currentQty = prev[foodId] || 0;
+      const nextQty = currentQty + delta;
+
+      // Chặn nếu giảm xuống dưới 0
+      if (nextQty <= 0) {
         const next = { ...prev };
         delete next[foodId];
         return next;
       }
-      return { ...prev, [foodId]: qty };
+
+      // CHẶN NẾU VƯỢT QUÁ TỒN KHO
+      if (nextQty > food.stock) {
+        Swal.fire(
+          "Hết hàng",
+          `Món này chỉ còn ${food.stock} sản phẩm`,
+          "warning",
+        );
+        return prev;
+      }
+
+      return { ...prev, [foodId]: nextQty };
     });
   };
 
@@ -538,6 +566,7 @@ const BookingPage = () => {
                       >
                         {formatPrice(food.price)}
                       </div>
+
                       {/* Tăng giảm số lượng */}
                       <div
                         style={{
@@ -585,6 +614,21 @@ const BookingPage = () => {
                           +
                         </button>
                       </div>
+
+                      {food.stock < 5 && (
+                        <div
+                          style={{
+                            fontSize: "10px",
+                            color: "red",
+                            marginTop: "8px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          {food.stock === 0
+                            ? "Hết hàng"
+                            : `Chỉ còn ${food.stock}`}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
