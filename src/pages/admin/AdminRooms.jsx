@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import roomService from "../../services/roomService";
 import seatService from "../../services/seatService";
 
@@ -32,8 +33,22 @@ const AdminRooms = () => {
     try {
       if (editing) {
         await roomService.update(editing, form);
+        Swal.fire({
+          title: "Thành công!",
+          text: "Thông tin phòng đã được cập nhật.",
+          icon: "success",
+          confirmButtonColor: "#e74c3c",
+          timer: 1500,
+        });
       } else {
         await roomService.create(form);
+        Swal.fire({
+          title: "Thành công!",
+          text: "Phòng mới đã được tạo.",
+          icon: "success",
+          confirmButtonColor: "#e74c3c",
+          timer: 1500,
+        });
       }
       setForm({ name: "", capacity: "", screen_type: "2D" });
       setEditing(null);
@@ -45,31 +60,55 @@ const AdminRooms = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Xoá phòng này?")) return;
-    try {
-      await roomService.delete(id);
-      fetchRooms();
-    } catch (err) {
-      alert(err.response?.data?.message || "Lỗi xoá phòng");
+    const result = await Swal.fire({
+      title: "Xác nhận xoá?",
+      text: "Tất cả dữ liệu liên quan đến phòng này sẽ bị mất!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e74c3c",
+      cancelButtonColor: "#aaa",
+      confirmButtonText: "Đồng ý xoá",
+      cancelButtonText: "Huỷ",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await roomService.delete(id);
+        Swal.fire({
+          title: "Đã xoá!",
+          icon: "success",
+          confirmButtonColor: "#e74c3c",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        fetchRooms();
+      } catch (err) {
+        Swal.fire("Lỗi!", "Không thể xoá phòng này", "error");
+      }
     }
   };
 
   const handleCreateSeats = async (roomId) => {
     try {
-      const vipRowsArr = seatForm.vipRows
-        .split(",")
-        .map((s) => s.trim().toUpperCase())
-        .filter(Boolean);
-      await seatService.createForRoom(roomId, {
-        rows: parseInt(seatForm.rows),
-        seatsPerRow: parseInt(seatForm.seatsPerRow),
-        vipRows: vipRowsArr,
+      await seatService.bulkCreate(roomId, seatForm);
+
+      // Thông báo tạo ghế thành công hiện ở giữa
+      Swal.fire({
+        title: "Tạo ghế thành công!",
+        text: `Đã tạo sơ đồ ghế cho phòng thành công.`,
+        icon: "success",
+        confirmButtonColor: "#27ae60", // Màu xanh lá cho khác biệt với nút xóa
+        timer: 2000,
       });
-      alert("Tạo ghế thành công!");
+
       setSelectedRoom(null);
-      fetchRooms();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi tạo ghế");
+      Swal.fire({
+        title: "Lỗi tạo ghế!",
+        text: err.response?.data?.message || "Có lỗi xảy ra khi tạo sơ đồ ghế",
+        icon: "error",
+        confirmButtonColor: "#e74c3c",
+      });
     }
   };
 

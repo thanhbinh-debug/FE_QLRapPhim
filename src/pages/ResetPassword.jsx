@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import authService from "../services/authService"; //[cite: 8]
 
 const ResetPassword = () => {
@@ -16,7 +17,12 @@ const ResetPassword = () => {
 
     try {
       await authService.resetPassword(token, password);
-      alert("Đổi mật khẩu thành công! Hãy đăng nhập lại.");
+      await Swal.fire({
+        title: "Thành công!",
+        text: "Mật khẩu của bạn đã được thay đổi. Hãy đăng nhập lại.",
+        icon: "success",
+        confirmButtonColor: "#e74c3c",
+      });
       navigate("/login"); //[cite: 3, 5]
     } catch (err) {
       setError(

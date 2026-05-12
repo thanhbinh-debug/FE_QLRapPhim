@@ -110,6 +110,49 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      <div style={{ display: "flex", gap: "20px", marginTop: "30px" }}>
+        {/* Biểu đồ Peak Hours */}
+        <div style={{ ...cardStyle, flex: 2 }}>
+          <h4>🕒 Khung giờ khách đặt vé</h4>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart
+              data={(stats?.peakHours || []).map((h) => ({
+                hour: h.hour + "h",
+                count: h.count,
+              }))}
+            >
+              <XAxis dataKey="hour" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#8884d8" name="Số lượng vé" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Cảnh báo kho */}
+        <div style={{ ...cardStyle, flex: 1 }}>
+          <h4>⚠️ Cảnh báo hết hàng</h4>
+          <div style={{ marginTop: "10px" }}>
+            {stats.lowStockFoods?.length > 0 ? (
+              stats.lowStockFoods.map((f, i) => (
+                <div
+                  key={i}
+                  style={{
+                    color: "red",
+                    padding: "5px 0",
+                    borderBottom: "1px solid #eee",
+                  }}
+                >
+                  {f.name}: <strong>Còn {f.stock}</strong>
+                </div>
+              ))
+            ) : (
+              <p style={{ color: "green" }}>Mọi thứ vẫn ổn!</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* 3. Bảng tình trạng ghế */}
       <div style={cardStyle}>
         <h4 style={{ marginBottom: "15px" }}>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Swal from "sweetalert2";
 
 const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -28,7 +29,12 @@ const RegisterPage = () => {
       //await register( form.name, form.email, form.password, form.phone);
       await register(form);
       navigate("/login");
-      alert("Đăng ký thành công! Vui lòng đăng nhập.");
+      Swal.fire({
+        title: "Đăng ký thành công!",
+        icon: "success",
+        confirmButtonColor: "#e74c3c",
+        timer: 1500,
+      });
     } catch (err) {
       setError(err.response?.data?.message || "Đăng ký thất bại");
     } finally {

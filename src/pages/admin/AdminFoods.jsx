@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import foodService from "../../services/foodService";
+import Swal from "sweetalert2";
 
 const EMPTY = {
   name: "",
@@ -7,6 +8,7 @@ const EMPTY = {
   price: "",
   image: "",
   description: "",
+  stock: 0,
 };
 
 const AdminFoods = () => {
@@ -29,6 +31,12 @@ const AdminFoods = () => {
     try {
       if (editing) {
         await foodService.update(editing, form);
+        Swal.fire({
+          title: "Cập nhật thành công!",
+          icon: "success",
+          confirmButtonColor: "#e74c3c",
+          timer: 1500,
+        });
       } else {
         await foodService.create(form);
       }
@@ -42,12 +50,34 @@ const AdminFoods = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Xoá món này?")) return;
-    try {
-      await foodService.delete(id);
-      fetchFoods();
-    } catch (err) {
-      alert("Lỗi xoá món");
+    const result = await Swal.fire({
+      title: "Xác nhận xoá món?",
+      text: "Món ăn này sẽ bị xoá vĩnh viễn!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e74c3c",
+      cancelButtonColor: "#aaa",
+      confirmButtonText: "Đồng ý xoá",
+      cancelButtonText: "Huỷ",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await foodService.delete(id);
+        Swal.fire({
+          title: "Đã xoá!",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        fetchFoods();
+      } catch (err) {
+        Swal.fire({
+          title: "Lỗi xoá món!",
+          icon: "error",
+          confirmButtonColor: "#e74c3c",
+        });
+      }
     }
   };
 
@@ -116,6 +146,12 @@ const AdminFoods = () => {
           {[
             { name: "name", label: "Tên món *", type: "text", col: 2 },
             { name: "price", label: "Giá (đ) *", type: "number", col: 1 },
+            {
+              name: "stock",
+              label: "Số lượng tồn kho *",
+              type: "number",
+              col: 1,
+            },
             { name: "image", label: "URL ảnh", type: "text", col: 1 },
             { name: "description", label: "Mô tả", type: "text", col: 2 },
           ].map((f) => (
@@ -254,6 +290,7 @@ const AdminFoods = () => {
                       price: food.price,
                       image: food.image || "",
                       description: food.description || "",
+                      stock: food.stock || 0,
                     });
                     setEditing(food.id);
                     setShowForm(true);
