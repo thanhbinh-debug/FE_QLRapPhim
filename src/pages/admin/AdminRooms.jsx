@@ -12,11 +12,11 @@ const AdminRooms = () => {
   });
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [seatForm, setSeatForm] = useState({
-    rows: 8,
-    seatsPerRow: 10,
-    vipRows: "D,E",
-  });
+
+  // 1. THAY ĐỔI STATE KHỞI TẠO GHẾ THÀNH DẠNG MẢNG CẤU HÌNH LINH HOẠT
+  const [rowsConfig, setRowsConfig] = useState([
+    { row: "A", seatsCount: 10, type: "standard" },
+  ]);
   const [selectedRoom, setSelectedRoom] = useState(null);
 
   const fetchRooms = async () => {
@@ -93,20 +93,22 @@ const AdminRooms = () => {
     }
   };
 
+  // 2. CẬP NHẬT HÀM GỌI API TRUYỀN `rowsConfig` LÊN BACKEND
   const handleCreateSeats = async (roomId) => {
     try {
-      await seatService.bulkCreate(roomId, seatForm);
+      // Truyền đúng object chứa rowsConfig sang API
+      await seatService.bulkCreate(roomId, { rowsConfig });
 
-      // Thông báo tạo ghế thành công hiện ở giữa
       Swal.fire({
         title: "Tạo ghế thành công!",
         text: `Đã tạo sơ đồ ghế cho phòng thành công.`,
         icon: "success",
-        confirmButtonColor: "#27ae60", // Màu xanh lá cho khác biệt với nút xóa
+        confirmButtonColor: "#27ae60",
         timer: 2000,
       });
 
       setSelectedRoom(null);
+      fetchRooms(); // Tải lại phòng để cập nhật dung lượng (capacity) thực tế mới
     } catch (err) {
       Swal.fire({
         title: "Lỗi tạo ghế!",
@@ -115,6 +117,38 @@ const AdminRooms = () => {
         confirmButtonColor: "#e74c3c",
       });
     }
+  };
+
+  // 3. CÁC HÀM BỔ TRỢ QUẢN LÝ THÊM/XÓA/SỬA HÀNG GHẾ ĐỘNG
+  const getNextRowLetter = (index) => {
+    return String.fromCharCode(65 + index);
+  };
+
+  const handleAddRow = () => {
+    const nextIndex = rowsConfig.length;
+    if (nextIndex >= 26) return; // Giới hạn bảng chữ cái từ A-Z
+    const nextRow = getNextRowLetter(nextIndex);
+    setRowsConfig([
+      ...rowsConfig,
+      { row: nextRow, seatsCount: 10, type: "standard" },
+    ]);
+  };
+
+  const handleRemoveRow = (indexToRemove) => {
+    if (rowsConfig.length <= 1) return;
+    const updated = rowsConfig
+      .filter((_, idx) => idx !== indexToRemove)
+      .map((item, idx) => ({
+        ...item,
+        row: getNextRowLetter(idx), // Reset lại ký tự theo thứ tự đúng A, B, C...
+      }));
+    setRowsConfig(updated);
+  };
+
+  const handleUpdateRowConfig = (index, key, value) => {
+    const updated = [...rowsConfig];
+    updated[index][key] = value;
+    setRowsConfig(updated);
   };
 
   const inputStyle = {
@@ -295,9 +329,17 @@ const AdminRooms = () => {
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button
-                  onClick={() =>
-                    setSelectedRoom(selectedRoom === room.id ? null : room.id)
-                  }
+                  onClick={() => {
+                    if (selectedRoom === room.id) {
+                      setSelectedRoom(null);
+                    } else {
+                      setSelectedRoom(room.id);
+                      // Reset form về mặc định khi chuyển hoặc mở phòng khác
+                      setRowsConfig([
+                        { row: "A", seatsCount: 10, type: "standard" },
+                      ]);
+                    }
+                  }}
                   style={{
                     padding: "6px 14px",
                     borderRadius: 6,
@@ -349,62 +391,174 @@ const AdminRooms = () => {
               </div>
             </div>
 
-            {/* Form tạo ghế */}
+            {/* Form cấu hình sơ đồ hàng ghế linh hoạt */}
             {selectedRoom === room.id && (
               <div
                 style={{
                   marginTop: 16,
-                  padding: 16,
+                  padding: 20,
                   background: "#f9f9f9",
                   borderRadius: 8,
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr auto",
-                  gap: 12,
-                  alignItems: "flex-end",
+                  border: "1px dashed #ccc",
                 }}
               >
-                {[
-                  { label: "Số hàng", key: "rows", type: "number" },
-                  { label: "Ghế/hàng", key: "seatsPerRow", type: "number" },
-                  { label: "Hàng VIP (VD: D,E)", key: "vipRows", type: "text" },
-                ].map((f) => (
-                  <div key={f.key}>
-                    <label
-                      style={{
-                        fontSize: 12,
-                        color: "#666",
-                        display: "block",
-                        marginBottom: 4,
-                      }}
-                    >
-                      {f.label}
-                    </label>
-                    <input
-                      type={f.type}
-                      value={seatForm[f.key]}
-                      onChange={(e) =>
-                        setSeatForm({ ...seatForm, [f.key]: e.target.value })
-                      }
-                      style={{ ...inputStyle, width: "100%" }}
-                    />
-                  </div>
-                ))}
-                <button
-                  onClick={() => handleCreateSeats(room.id)}
+                <h4
+                  style={{ marginBottom: 14, fontWeight: 600, color: "#333" }}
+                >
+                  ⚙️ Cấu hình sơ đồ ghế theo từng hàng:
+                </h4>
+
+                <div
                   style={{
-                    padding: "10px 16px",
-                    borderRadius: 8,
-                    background: "#27ae60",
-                    color: "#fff",
-                    border: "none",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    fontSize: 13,
-                    whiteSpace: "nowrap",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    marginBottom: 16,
                   }}
                 >
-                  Tạo ghế
-                </button>
+                  {rowsConfig.map((config, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "80px 1fr 1fr auto",
+                        gap: 12,
+                        alignItems: "center",
+                        background: "#fff",
+                        padding: "8px 12px",
+                        borderRadius: 6,
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      {/* Tên hàng ghế */}
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 15,
+                          textAlign: "center",
+                          color: "#e74c3c",
+                        }}
+                      >
+                        Hàng {config.row}
+                      </span>
+
+                      {/* Số lượng ghế */}
+                      <div>
+                        <label
+                          style={{
+                            fontSize: 11,
+                            color: "#888",
+                            display: "block",
+                            marginBottom: 2,
+                          }}
+                        >
+                          Số ghế
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={config.seatsCount}
+                          onChange={(e) =>
+                            handleUpdateRowConfig(
+                              index,
+                              "seatsCount",
+                              e.target.value,
+                            )
+                          }
+                          style={{ ...inputStyle, padding: "6px 10px" }}
+                        />
+                      </div>
+
+                      {/* Phân loại ghế hợp lệ với cấu trúc ENUM database */}
+                      <div>
+                        <label
+                          style={{
+                            fontSize: 11,
+                            color: "#888",
+                            display: "block",
+                            marginBottom: 2,
+                          }}
+                        >
+                          Loại ghế
+                        </label>
+                        <select
+                          value={config.type}
+                          onChange={(e) =>
+                            handleUpdateRowConfig(index, "type", e.target.value)
+                          }
+                          style={{ ...inputStyle, padding: "6px 10px" }}
+                        >
+                          <option value="standard">Thường (Standard)</option>
+                          <option value="vip">VIP</option>
+                          <option value="couple">Ghế Đôi (Couple)</option>
+                        </select>
+                      </div>
+
+                      {/* Nút xoá hàng hiện tại */}
+                      {rowsConfig.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveRow(index)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#c0392b",
+                            cursor: "pointer",
+                            fontSize: 16,
+                            paddingTop: 14,
+                          }}
+                          title="Xóa hàng này"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Chức năng tương tác tổng quan */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 10,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleAddRow}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 6,
+                      background: "#fff",
+                      color: "#2980b9",
+                      border: "1px solid #2980b9",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontSize: 12,
+                    }}
+                  >
+                    ➕ Thêm hàng tiếp theo
+                  </button>
+
+                  <button
+                    onClick={() => handleCreateSeats(room.id)}
+                    style={{
+                      padding: "10px 24px",
+                      borderRadius: 8,
+                      background: "#27ae60",
+                      color: "#fff",
+                      border: "none",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontSize: 13,
+                    }}
+                  >
+                    🚀 Xác nhận tạo sơ đồ ghế
+                  </button>
+                </div>
               </div>
             )}
           </div>
