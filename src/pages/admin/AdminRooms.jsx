@@ -55,7 +55,12 @@ const AdminRooms = () => {
       setShowForm(false);
       fetchRooms();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi lưu phòng");
+      Swal.fire({
+        title: "Lỗi!",
+        text: err.response?.data?.message || "Có lỗi xảy ra khi tạo phòng",
+        icon: "error",
+        confirmButtonColor: "#e74c3c",
+      });
     }
   };
 
