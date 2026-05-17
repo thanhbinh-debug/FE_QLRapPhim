@@ -31,7 +31,7 @@ const Footer = () => {
               color: "#e74c3c",
             }}
           >
-            🎬 CinemaApp
+            🎬 CinemaWebsite
           </h2>
           <p style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.6 }}>
             Trải nghiệm điện ảnh đỉnh cao với hệ thống đặt vé hiện đại. Cập nhật

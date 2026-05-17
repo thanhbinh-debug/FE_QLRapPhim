@@ -65,20 +65,26 @@ const AdminBookings = () => {
         >
           <thead>
             <tr style={{ background: "#f1f1f1" }}>
-              {["ID", "Phim", "Ghế", "Tổng tiền", "Trạng thái", "Ngày đặt"].map(
-                (h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "10px 12px",
-                      textAlign: "left",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
+              {[
+                "ID",
+                "Phim",
+                "Phòng",
+                "Ghế",
+                "Tổng tiền",
+                "Trạng thái",
+                "Ngày đặt",
+              ].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: "10px 12px",
+                    textAlign: "left",
+                    fontWeight: 600,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -92,15 +98,29 @@ const AdminBookings = () => {
                     background: i % 2 === 0 ? "#fff" : "#fafafa",
                   }}
                 >
+                  {/* 1. ID */}
                   <td style={{ padding: "10px 12px", color: "#888" }}>
                     #{b.id}
                   </td>
+                  {/* 2. Phim */}
                   <td style={{ padding: "10px 12px", fontWeight: 500 }}>
                     {b.Showtime?.Movie?.title}
                   </td>
+                  {/* 3. PHÒNG (Mới thêm vào đây) */}
+                  <td
+                    style={{
+                      padding: "10px 12px",
+                      color: "#e74c3c",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {b.Showtime?.Room?.name || "N/A"}
+                  </td>
+                  {/* 4. Ghế */}
                   <td style={{ padding: "10px 12px", color: "#666" }}>
                     {b.Seats?.map((s) => `${s.row}${s.number}`).join(", ")}
                   </td>
+                  {/* 5. Tổng tiền */}
                   <td
                     style={{
                       padding: "10px 12px",
@@ -110,6 +130,7 @@ const AdminBookings = () => {
                   >
                     {Number(b.total_price).toLocaleString("vi-VN")}đ
                   </td>
+                  {/* 6. Trạng thái */}
                   <td style={{ padding: "10px 12px" }}>
                     <span
                       style={{
@@ -124,6 +145,7 @@ const AdminBookings = () => {
                       {status.label}
                     </span>
                   </td>
+                  {/* 7. Ngày đặt */}
                   <td
                     style={{
                       padding: "10px 12px",

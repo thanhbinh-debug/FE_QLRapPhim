@@ -10,26 +10,30 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
+  const [filterRange, setFilterRange] = useState("7days"); // State cho bộ lọc thời gian
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/admin/stats", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Truyền thêm param ?range= vào API
+        const res = await axios.get(
+          `http://localhost:5000/admin/stats?range=${filterRange}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         setStats(res.data.data);
       } catch (err) {
         console.error("Lỗi tải thống kê", err);
       }
     };
     fetchStats();
-  }, []);
+  }, [filterRange]); // Khi filterRange thay đổi, useEffect sẽ chạy lại để tải dữ liệu mới
 
   if (!stats) return <div style={{ padding: "20px" }}>Đang tải dữ liệu...</div>;
 
@@ -45,7 +49,47 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ padding: "20px", background: "#f8f9fa", minHeight: "100vh" }}>
-      <h2 style={{ marginBottom: "20px" }}>Bảng điều khiển rạp phim</h2>
+      {/* Tiêu đề kết hợp Thanh Bộ Lọc */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "滿足",
+          alignItems: "center",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+          gap: "15px",
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Bảng điều khiển rạp phim</h2>
+
+        {/* Dropdown lọc thời gian */}
+        <div>
+          <label
+            htmlFor="range-select"
+            style={{ marginRight: "10px", fontWeight: "bold", color: "#555" }}
+          >
+            Thời gian:
+          </label>
+          <select
+            id="range-select"
+            value={filterRange}
+            onChange={(e) => setFilterRange(e.target.value)}
+            style={{
+              padding: "8px 12px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              background: "#fff",
+              fontWeight: "500",
+              cursor: "pointer",
+              outline: "none",
+            }}
+          >
+            <option value="today">Hôm nay</option>
+            <option value="7days">7 ngày gần nhất</option>
+            <option value="month">Tháng này</option>
+          </select>
+        </div>
+      </div>
 
       {/* 1. Thẻ tổng quan (Cards) */}
       <div style={{ display: "flex", gap: "20px", marginBottom: "30px" }}>
@@ -67,20 +111,46 @@ const AdminDashboard = () => {
             {stats.overview.total_tickets} vé
           </p>
         </div>
+        <div style={{ ...cardStyle, borderLeft: "5px solid #9b59b6" }}>
+          <h4 style={{ color: "#7f8c8d", margin: "0" }}>📊 Tỷ lệ lấp đầy</h4>
+          <p style={{ fontSize: "22px", fontWeight: "bold" }}>
+            {stats.overview.average_occupancy}%
+          </p>
+        </div>
       </div>
 
       {/* 2. Biểu đồ (Charts) */}
       <div style={{ display: "flex", gap: "20px", marginBottom: "30px" }}>
         <div style={{ ...cardStyle, height: "350px", flex: 2 }}>
           <h4 style={{ marginBottom: "15px" }}>
-            📈 Xu hướng doanh thu (7 ngày)
+            {filterRange === "today"
+              ? "📈 Doanh thu hôm nay"
+              : filterRange === "month"
+                ? "📈 Xu hướng doanh thu (Tháng này)"
+                : "📈 Xu hướng doanh thu (7 ngày)"}
           </h4>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 12 }}
+                tickFormatter={(tick) => {
+                  if (!tick) return "";
+                  const parts = tick.split("-");
+                  if (parts.length < 3) return tick;
+                  return `${parts[2]}/${parts[1]}`; // '2026-05-17' -> '17/05'
+                }}
+              />
               <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
+              <Tooltip
+                labelFormatter={(label) => {
+                  if (!label) return "";
+                  const parts = label.split("-");
+                  if (parts.length < 3) return label;
+                  return `Ngày ${parts[2]}/${parts[1]}/${parts[0]}`;
+                }}
+              />
               <Line
                 type="monotone"
                 dataKey="daily_revenue"
@@ -96,7 +166,7 @@ const AdminDashboard = () => {
           <h4 style={{ marginBottom: "15px" }}>🎬 Top phim doanh thu</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={movieData}>
-              <XAxis dataKey="title" hide />
+              <XAxis dataKey="title" tick={{ fontSize: 10 }} />
               <YAxis />
               <Tooltip />
               <Bar

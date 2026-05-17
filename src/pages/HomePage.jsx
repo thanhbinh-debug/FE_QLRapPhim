@@ -92,7 +92,7 @@ const HomePage = () => {
         }}
       >
         <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>
-          🎬 Chào mừng đến CinemaApp
+          🎬 Chào mừng đến CinemaWebsite
         </h1>
         <p style={{ fontSize: 16, opacity: 0.85, marginBottom: 24 }}>
           Đặt vé xem phim nhanh chóng, dễ dàng

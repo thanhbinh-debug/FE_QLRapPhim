@@ -31,7 +31,7 @@ const Navbar = () => {
           fontWeight: 700,
         }}
       >
-        🎬 CinemaApp
+        🎬 CinemaWebSite
       </Link>
 
       {/* Menu chính */}
